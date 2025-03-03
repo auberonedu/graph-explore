@@ -5,18 +5,11 @@
     <title>Graph Visualization</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <style>
-      /* Prevent text selection in the D3 visualization */
-      .labels text {
-         user-select: none;
-      }
-    </style>
 </head>
 <body>
     <h1>Graph Visualization</h1>
     <svg width="800" height="600"></svg>
     <script>
-        // Embedded graph data
         const graph = {"nodes": [{"id": "3"}, {"id": "7"}, {"id": "12"}, {"id": "34"}, {"id": "56"}, {"id": "78"}, {"id": "91"}, {"id": "45"}, {"id": "23"}, {"id": "67"}], "links": [{"source": "3", "target": "7"}, {"source": "3", "target": "34"}, {"source": "7", "target": "12"}, {"source": "7", "target": "45"}, {"source": "7", "target": "34"}, {"source": "7", "target": "56"}, {"source": "12", "target": "7"}, {"source": "12", "target": "56"}, {"source": "12", "target": "78"}, {"source": "34", "target": "34"}, {"source": "34", "target": "23"}, {"source": "34", "target": "91"}, {"source": "56", "target": "78"}, {"source": "78", "target": "91"}, {"source": "91", "target": "56"}, {"source": "45", "target": "23"}, {"source": "23", "target": "7"}, {"source": "67", "target": "91"}]};
 
         const svg = d3.select("svg");
@@ -27,7 +20,7 @@
         svg.append("defs").append("marker")
             .attr("id", "arrow")
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 25)
+            .attr("refX", 22)
             .attr("refY", 0)
             .attr("markerWidth", 6)
             .attr("markerHeight", 6)
@@ -36,62 +29,60 @@
             .attr("d", "M0,-5L10,0L0,5")
             .attr("fill", "#333");
 
+        // Create a container for the links
+        const link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("path")
+            .data(graph.links)
+            .enter().append("path")
+            .attr("stroke-width", 2)
+            .attr("stroke", "#333")
+            .attr("fill", "none")
+            .attr("marker-end", "url(#arrow)");
+
+        // Create a container for nodes (each is a <g> with a circle and text)
+        const node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("g")
+            .data(graph.nodes)
+            .enter().append("g")
+            .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+        node.append("circle")
+            .attr("r", 20)
+            .attr("fill", "#fff")
+            .attr("stroke", "#333");
+
+        node.append("text")
+            .attr("dy", 4)
+            .attr("text-anchor", "middle")
+            .attr("fill", "#333")
+            .text(d => d.id);
+
         // Set up the simulation
         const simulation = d3.forceSimulation(graph.nodes)
             .force("link", d3.forceLink(graph.links).id(d => d.id).distance(120))
             .force("charge", d3.forceManyBody().strength(-300))
             .force("center", d3.forceCenter(width / 2, height / 2));
 
-        // Draw links (edges) with a visible stroke color
-        const link = svg.append("g")
-            .attr("class", "links")
-            .selectAll("line")
-            .data(graph.links)
-            .enter().append("line")
-            .attr("stroke-width", 2)
-            .attr("stroke", "#333")
-            .attr("marker-end", "url(#arrow)");
-
-        // Draw nodes (circles) with a white fill and dark stroke
-        const node = svg.append("g")
-            .attr("class", "nodes")
-            .selectAll("circle")
-            .data(graph.nodes)
-            .enter().append("circle")
-            .attr("r", 20)
-            .attr("fill", "#fff")
-            .attr("stroke", "#333")
-            .call(d3.drag()
-                    .on("start", dragstarted)
-                    .on("drag", dragged)
-                    .on("end", dragended));
-
-        // Add labels to nodes with unselectable text
-        const label = svg.append("g")
-            .attr("class", "labels")
-            .selectAll("text")
-            .data(graph.nodes)
-            .enter().append("text")
-            .attr("dy", 4)
-            .attr("text-anchor", "middle")
-            .attr("fill", "#333")
-            .style("user-select", "none")
-            .text(d => d.id);
-
         simulation.on("tick", () => {
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+            link.attr("d", function(d) {
+                if (d.source.id === d.target.id) {
+                    // Self-loop logic
+                    const r = 25; // Loop radius
+                    const offsetX = d.source.x + 20; // Shift slightly to the right
+                    const offsetY = d.source.y - 20; // Shift slightly upward
+                    return `M ${offsetX},${offsetY} A ${r},${r} 0 1,1 ${offsetX - 1},${offsetY}`;
+                } else {
+                    // Normal straight path
+                    return `M ${d.source.x},${d.source.y} L ${d.target.x},${d.target.y}`;
+                }
+            });
 
-            node
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
-
-            label
-                .attr("x", d => d.x)
-                .attr("y", d => d.y);
+            node.attr("transform", d => `translate(${d.x},${d.y})`);
         });
 
         function dragstarted(event, d) {

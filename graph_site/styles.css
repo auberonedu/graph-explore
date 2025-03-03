@@ -39,21 +39,33 @@ h1.node-value {
 }
 
 .index-list li {
-  margin: 0.5em 0;
+  display: inline-block;
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 999px;
+  padding: 0.5em 1em;
+  margin: 0.5em;
+  cursor: pointer;
 }
 
-a {
+.index-list li a {
   color: #333;
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
+.index-list li:hover {
+  background: #333;
+  color: #fff;
 }
 
 /* Styling for the D3 visualization */
 svg {
   border: 1px solid #ccc;
   background-color: #fff;
+}
+
+/* Prevent text selection in the D3 visualization */
+.labels text {
+   user-select: none;
 }
     
