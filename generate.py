@@ -143,7 +143,7 @@ def generate_index_page(starting_nodes, output_folder):
     <ul class="index-list">
         {list_items}
     </ul>
-    <p>You can also open <code>viz.html</code> for a visual representation of the graph.</p>
+    <p>Hint: You may want to write things down, and your back button will be very useful!</p>
 </body>
 </html>
 """
