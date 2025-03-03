@@ -1,0 +1,59 @@
+
+/* Styling for the graph explorer site */
+body {
+  font-family: Arial, sans-serif;
+  margin: 1em;
+  padding: 0;
+  text-align: center;
+  background-color: #fdf8ee; /* light cream background */
+}
+
+h1.node-value {
+  font-size: 3em;
+  margin: 0.5em 0;
+}
+
+.neighbor-links {
+  margin-top: 1em;
+}
+
+.neighbor-link {
+  display: inline-block;
+  text-decoration: none;
+  color: #333;
+  border: 2px solid #333;
+  border-radius: 999px;
+  padding: 0.5em 1em;
+  margin: 0.2em;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.neighbor-link:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.index-list {
+  list-style: none;
+  padding: 0;
+}
+
+.index-list li {
+  margin: 0.5em 0;
+}
+
+a {
+  color: #333;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Styling for the D3 visualization */
+svg {
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+    
