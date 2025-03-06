@@ -7,8 +7,8 @@ import json
 # -----------------------------------------------
 graph = {
     3:   [7, 34],
-    7:   [12, 45, 34, 56],
-    12:  [7, 56, 78],
+    7:   [45, 34, 56],
+    12:  [56, 78],
     34:  [34, 91],
     56:  [78],
     78:  [91],
@@ -16,6 +16,24 @@ graph = {
     45:  [23],
     23:  [],
     67:  [91]
+}
+
+# Configure edge weights here: Each edge has an arbitrary weight.
+edge_weights = {
+    (3, 7): 5,
+    (3, 34): 2,
+    (7, 45): 7,
+    (7, 34): 4,
+    (7, 56): 6,
+    (12, 56): 5,
+    (12, 78): 8,
+    (34, 34): 1,
+    (34, 91): 3,
+    (56, 78): 9,
+    (78, 91): 2,
+    (91, 56): 4,
+    (45, 23): 6,
+    (67, 91): 7,
 }
 
 starting_nodes = [3, 67, 7]
@@ -156,7 +174,8 @@ def generate_viz_page(graph, output_folder):
     links = []
     for source, targets in graph.items():
         for target in targets:
-            links.append({"source": str(source), "target": str(target)})
+            weight = edge_weights.get((source, target), 1)  # Default to 1 if not specified
+            links.append({"source": str(source), "target": str(target), "weight": weight})
 
     viz_data = {"nodes": nodes, "links": links}
     viz_json = json.dumps(viz_data)
@@ -203,6 +222,16 @@ def generate_viz_page(graph, output_folder):
             .attr("fill", "none")
             .attr("marker-end", "url(#arrow)");
 
+        // Create edge weight labels
+        const linkLabels = svg.append("g")
+            .attr("class", "link-labels")
+            .selectAll("text")
+            .data(graph.links)
+            .enter().append("text")
+            .attr("fill", "#333")
+            .attr("font-size", "14px")
+            .text(d => d.weight);
+
         // Create a container for nodes (each is a <g> with a circle and text)
         const node = svg.append("g")
             .attr("class", "nodes")
@@ -245,6 +274,23 @@ def generate_viz_page(graph, output_folder):
                 }}
             }});
 
+            // Update link label positions
+            linkLabels.attr("x", d => {{
+                if(d.source.id === d.target.id) {{
+                    // Position for self-loop label
+                    return d.source.x + 30;
+                }} else {{
+                    return (d.source.x + d.target.x) / 2;
+                }}
+            }})
+            .attr("y", d => {{
+                if(d.source.id === d.target.id) {{
+                    return d.source.y - 30;
+                }} else {{
+                    return (d.source.y + d.target.y) / 2;
+                }}
+            }});
+
             node.attr("transform", d => `translate(${{d.x}},${{d.y}})`);
         }});
 
@@ -271,7 +317,6 @@ def generate_viz_page(graph, output_folder):
     filename = os.path.join(output_folder, "viz.html")
     with open(filename, "w", encoding="utf-8") as f:
         f.write(html_content)
-
 
 def generate_node_pages(graph, output_folder):
     for node_value, neighbors in graph.items():

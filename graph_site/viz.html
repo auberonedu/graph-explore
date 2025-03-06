@@ -10,7 +10,7 @@
     <h1>Graph Visualization</h1>
     <svg width="800" height="600"></svg>
     <script>
-        const graph = {"nodes": [{"id": "3"}, {"id": "7"}, {"id": "12"}, {"id": "34"}, {"id": "56"}, {"id": "78"}, {"id": "91"}, {"id": "45"}, {"id": "23"}, {"id": "67"}], "links": [{"source": "3", "target": "7"}, {"source": "3", "target": "34"}, {"source": "7", "target": "12"}, {"source": "7", "target": "45"}, {"source": "7", "target": "34"}, {"source": "7", "target": "56"}, {"source": "12", "target": "7"}, {"source": "12", "target": "56"}, {"source": "12", "target": "78"}, {"source": "34", "target": "34"}, {"source": "34", "target": "91"}, {"source": "56", "target": "78"}, {"source": "78", "target": "91"}, {"source": "91", "target": "56"}, {"source": "45", "target": "23"}, {"source": "67", "target": "91"}]};
+        const graph = {"nodes": [{"id": "3"}, {"id": "7"}, {"id": "12"}, {"id": "34"}, {"id": "56"}, {"id": "78"}, {"id": "91"}, {"id": "45"}, {"id": "23"}, {"id": "67"}], "links": [{"source": "3", "target": "7", "weight": 5}, {"source": "3", "target": "34", "weight": 2}, {"source": "7", "target": "45", "weight": 7}, {"source": "7", "target": "34", "weight": 4}, {"source": "7", "target": "56", "weight": 6}, {"source": "12", "target": "56", "weight": 5}, {"source": "12", "target": "78", "weight": 8}, {"source": "34", "target": "34", "weight": 1}, {"source": "34", "target": "91", "weight": 3}, {"source": "56", "target": "78", "weight": 9}, {"source": "78", "target": "91", "weight": 2}, {"source": "91", "target": "56", "weight": 4}, {"source": "45", "target": "23", "weight": 6}, {"source": "67", "target": "91", "weight": 7}]};
 
         const svg = d3.select("svg");
         const width = +svg.attr("width");
@@ -39,6 +39,16 @@
             .attr("stroke", "#333")
             .attr("fill", "none")
             .attr("marker-end", "url(#arrow)");
+
+        // Create edge weight labels
+        const linkLabels = svg.append("g")
+            .attr("class", "link-labels")
+            .selectAll("text")
+            .data(graph.links)
+            .enter().append("text")
+            .attr("fill", "#333")
+            .attr("font-size", "14px")
+            .text(d => d.weight);
 
         // Create a container for nodes (each is a <g> with a circle and text)
         const node = svg.append("g")
@@ -79,6 +89,23 @@
                 } else {
                     // Normal straight path
                     return `M ${d.source.x},${d.source.y} L ${d.target.x},${d.target.y}`;
+                }
+            });
+
+            // Update link label positions
+            linkLabels.attr("x", d => {
+                if(d.source.id === d.target.id) {
+                    // Position for self-loop label
+                    return d.source.x + 30;
+                } else {
+                    return (d.source.x + d.target.x) / 2;
+                }
+            })
+            .attr("y", d => {
+                if(d.source.id === d.target.id) {
+                    return d.source.y - 30;
+                } else {
+                    return (d.source.y + d.target.y) / 2;
                 }
             });
 
